@@ -20,17 +20,29 @@ interface AppContextValue {
   setCurrentTipIndex: (index: number) => void
   nextTip: () => void
   tips: LearningTip[]
+  selectedLocation: string
+  setSelectedLocation: (location: string) => void
+  maxBudget: number
+  setMaxBudget: (budget: number) => void
+  resetFilters: () => void
 }
 
 const AppContext = createContext<AppContextValue | null>(null)
 
-/** Wraps the app so EducationalBanner (and others) can consume tip state via useApp() */
+/** Wraps the app so EducationalBanner, Hero, and Tours can consume shared state via useApp() */
 export function AppProvider({ children }: { children: ReactNode }) {
   const [currentTipIndex, setCurrentTipIndex] = useState(0)
+  const [selectedLocation, setSelectedLocation] = useState<string>('all')
+  const [maxBudget, setMaxBudget] = useState<number>(5000)
 
   // Cycles 0 → 1 → 2 → 3 → 0; used when typewriter finishes reversing the current tip
   const nextTip = useCallback(() => {
     setCurrentTipIndex((i) => (i + 1) % learningTips.length)
+  }, [])
+
+  const resetFilters = useCallback(() => {
+    setSelectedLocation('all')
+    setMaxBudget(5000)
   }, [])
 
   const value = useMemo<AppContextValue>(
@@ -39,8 +51,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setCurrentTipIndex,
       nextTip,
       tips: learningTips,
+      selectedLocation,
+      setSelectedLocation,
+      maxBudget,
+      setMaxBudget,
+      resetFilters,
     }),
-    [currentTipIndex, nextTip]
+    [currentTipIndex, nextTip, selectedLocation, maxBudget, resetFilters]
   )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
